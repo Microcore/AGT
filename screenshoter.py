@@ -4,19 +4,14 @@ from datetime import datetime
 import logging
 from multiprocessing import Process
 import os
+import sys
 import time
 
 from PIL import ImageGrab
 import wx
 
-from loghandlers import NotificationHandler
-
-sh_logger = logging.getLogger('Screenshot')
-sh_logger.setLevel(logging.INFO)
-sh_logger.addHandler(NotificationHandler(timeout=6))
 
 __path__ = os.path.abspath(os.path.dirname(__file__))
-
 
 class ScreenshoterApp(wx.App):
 
@@ -88,7 +83,6 @@ class HotkeyFrame(wx.Frame):
             wx.GetApp().sound.Play(wx.SOUND_ASYNC)
 
             screenshot.save(os.path.join(wx.GetApp().save_path, filename))
-            sh_logger.info('Screen captured')
 
     def __del__(self):
         del self.wholeScreenHotkeyId
@@ -123,7 +117,7 @@ class SelectFrame(wx.Frame):
         self.ShowFullScreen(True)
         self.Raise()
         self.SetFocus()
-        self.RequestUserAttention()
+        # self.RequestUserAttention()
 
     def handleMouseMove(self, evt):
         '''
@@ -218,7 +212,6 @@ class SelectFrame(wx.Frame):
 
         selected_area.save(os.path.join(wx.GetApp().save_path, filename))
         self.close()
-        sh_logger.info('Screen captured')
 
     def close(self):
         wx.GetApp().SELECTFRAME = None
@@ -231,19 +224,9 @@ class SelectFrame(wx.Frame):
         del self.IMAGECTRL
         
 
-def screenshot_listener(save_path):
-    ScreenshoterApp(save_path).MainLoop()
-
-def main(*save_path):
-    p = Process(target=screenshot_listener, args=save_path)
-    p.start()
-    return [p]
-
-def register():
-    return ('main', ('D:\\Pictures\\Screenshots', ), )
-
-def test():
-    main(register()[1][0])
+def main(save_path):
+    app = ScreenshoterApp(save_path)
+    sys.exit(app.MainLoop())
 
 if __name__ == '__main__':
-    test()
+    main('D:\\')
