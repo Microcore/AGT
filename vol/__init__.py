@@ -1,4 +1,7 @@
 # coding: utf-8
+'''
+A cross platform implementation of volume control
+'''
 from __future__ import unicode_literals, print_function
 from sys import platform
 
