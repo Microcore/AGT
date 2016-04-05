@@ -134,8 +134,6 @@ class IMMDeviceEnumerator(IUnknown):
 
 class Win32VolumeController(VolumeController):
     '''VolumeController implementation for Win32 platform'''
-    # FIXME Test on win32 machine
-    # TODO Find all available channels
 
     def __init__(self):
         super(Win32VolumeController, self).__init__()
@@ -158,18 +156,32 @@ class Win32VolumeController(VolumeController):
         # self.__pEndPoint.VolumeStepDown(None)
 
     def get_volume(self, channel='master'):
-        return self.__pEndPoint.GetMasterVolumeLevelScalar()
+        if channel not in self.get_volume_channels():
+            raise KeyError('No such channel: {}'.format(channel))
+        return self.__pEndPoint.GetMasterVolumeLevelScalar() * 100.0
 
     def set_volume(self, value, channel='master'):
         if channel not in self.get_volume_channels():
             raise KeyError('No such channel: {}'.format(channel))
-        self.__pEndPoint.SetMasterVolumeLevelScalar(value, None)
+        min_volume, max_volume = self.get_volume_range(channel)
+        if not min_volume <= value <= max_volume:
+            raise ValueError(
+                'Value not in range: {:.1f} - {:.1f}'.format(
+                    min_volume, max_volume
+                )
+            )
+        self.__pEndPoint.SetMasterVolumeLevelScalar(value / 100.0, None)
 
     def get_volume_range(self, channel='master'):
         return (0, 100, )
 
     def get_volume_step(self, channel='master'):
+        # Windows actually takes volume as float, if you
+        # set it to 10, you'll get it as 9.9999
+        # The Windows mixer rounds it when displaying on UI,
+        # so deal with that yourself.
         return 1
 
     def get_volume_channels(self):
+        # TODO Maybe we should query and return all sessions here?
         return ('master', )
