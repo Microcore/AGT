@@ -47,4 +47,3 @@ class LinuxVolumeController(VolumeController):
 
     def get_volume_channels(self):
         return tuple([c.name for c in self.__pulse.sink_list()])
-
